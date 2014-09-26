@@ -58,7 +58,7 @@ INSERT INTO chart_data VALUES ('5', '14:29:31', '5');
 
 // Set DataProvider
 		$dataProvider=new CArrayDataProvider($oCDbDataReader, array(
-				'keyField' => 'ID'
+			'keyField' => 'ID'
 		));
 
 $this->render('AmChart',array('dataProvider'=>$dataProvider));
@@ -68,26 +68,29 @@ $this->render('AmChart',array('dataProvider'=>$dataProvider));
 <?php
 //View
 
-$this->widget('ext.amcharts.EAmChartWidget', 
-					array(
-						'width' => 700,
-						'height' => 400,
-						'chart'=>array(
-									'dataProvider'=>$dataProvider,
-									'categoryField' => 'time'
-									),
-						'chartType' => "AmSerialChart",
-						'graphs'=>array(
-									array(
-										'valueField' => 'data',
-										'title'=>'Data graph',
-										'type' => 'column'
-									)),
-						'categoryAxis'=>array(
-									'title'=>'Time'
-									),
-						'valueAxis'=>array(
-									'title'=>'Data')
-	));
+$this->widget('ext.amcharts.EAmChartWidget', array(
+	'width' => '100%',
+	'height' => 400,
+	'options'=>array(
+		'dataProvider'=>$dataProvider,
+		'categoryField' => 'time',
+		'type' => 'serial',
+		'graphs'=>array(
+			array(
+				'valueField' => 'data',
+				'title'=>'Data graph',
+				'type' => 'column',
+			)
+		),
+		'categoryAxis'=>array(
+			'title'=>'Time',
+		),
+		'valueAxes'=>array(
+			array(
+				'title'=>'Data',
+			),
+		),
+	),
+));
 
 ?>

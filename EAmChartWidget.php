@@ -2,6 +2,7 @@
 
 /**
  * Copyright (c) 2010 Lucas Gómez <luckas1984@gmail.com>
+ * Copyright (c) 2014 UA2004 <ua2004@ukr.net>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,34 +58,36 @@
  * 					array(
  * 						'width' => 700,
  * 						'height' => 400,
- * 						'chart'=>array(
+ * 						'options'=>array(
  * 									'dataProvider'=>$dataProvider,
- * 									'categoryField' => 'time'
+ * 									'categoryField' => 'time',
+ * 									'type' => 'serial',
+ * 									'graphs'=>array(
+ * 										array(
+ * 											'valueField' => 'data',
+ * 											'title'=>'Data graph',
+ * 											'type' => 'column'
+ * 										)),
  * 									),
- * 						'chartType' => "AmSerialChart",
- * 						'graphs'=>array(
- * 									array(
- * 										'valueField' => 'data',
- * 										'title'=>'Data graph',
- * 										'type' => 'column'
- * 									)),
- * 						'categoryAxis'=>array(
- * 									'title'=>'Time'
- * 									),
- * 						'valueAxis'=>array(
- * 									'title'=>'Data')
- * 	));
+ * 									'categoryAxis'=>array(
+ * 										'title'=>'Time'
+ * 										),
+ * 									'valueAxes'=>array(
+ * 										array(
+ * 											'title'=>'Data'
+ * 										)),
+ * 						)
+ * 					)
+ * );
  * </pre>
  *
  *
- * This widget for use with the Yii Framework utilises the Amchart plugin visualize
- * (http://www.amcharts.com/) to render graphs and
- * charts for your web application.
+ * This widget uses Amcharts (http://www.amcharts.com/)
+ * to render graphs and charts for your web application.
  *
- * For information on istallation and useage please visit the porjects hosting page
- * on google code: http://code.google.com/p/yii-amchart-widget/
+ * For installation and usage please visit the project home page:
+ * http://code.google.com/p/yii-amchart-widget/
  */
-Yii::import('application.extensions.amcharts.components.*');
 
 class EAmchartWidget extends CWidget
 {	
@@ -101,39 +104,12 @@ class EAmchartWidget extends CWidget
 	 */
 	public $height=400;
 	
-	
 	/**
 	 * @var array
 	 * Collection of option to customize the chart
 	 */
-	public $chart = array();
+	public $options = array();
 	
-	
-	/**
-	 * @var string
-	 * Type of Chart: AmSerialChart, AmPieChart, AmXYChart, AmRadarChart
-	 */
-	public $chartType = "AmSerialChart";
-	
-	
-	/**
-	 * @var array
-	 * Collection of Charts that will be displayed on Chart
-	 */
-	public $graphs = array();
-	
-	
-	/**
-	 * @var array
-	 * Collection of option to customize the Cateogry Axis
-	 */
-	public $categoryAxis = array();
-	
-	/**
-	 * @var array
-	 * Collection of option to customize the Value Axis
-	 */
-	public $valueAxis = array();
 	
 	/**
 	* @var array 
@@ -159,7 +135,6 @@ class EAmchartWidget extends CWidget
 	 * Default AmXYChart Options
 	 */
 	private $_defaultsAmXYChartOptions = array(
-			//'pathToImages' => Yii::app()->getAssetManager()->publish(dirname(__FILE__))."/assets/images/",
 			'panEventsEnabled' => true,
 			'marginRight' => 0,
 			'marginTop' => 0,
@@ -208,19 +183,35 @@ class EAmchartWidget extends CWidget
 	
 	
 	/**
-	 * The initialisation method
+	 * The initialization method
 	 */
 	public function init()
 	{
-        
-		// ensure valid chart type selected
-		foreach ($this->graphs as $graph)
+		// ensuring that valid chart type is selected
+		foreach ($this->options['graphs'] as $graph)
+		{
 			if(!in_array($graph['type'], $this->_validChartTypes))
+			{
 				throw new CException($graph['type'] . ' is an invalid chart type. Valid charts are ' . implode(',',$this->_validChartTypes));
+			}
+		}
 		
-		// check dataProvider is present
-		if(empty($this->chart['dataProvider']))
+		// checking if dataProvider is present
+		if(empty($this->options['dataProvider']))
+		{
 			throw new CException('Please provide some dataProvider to render a display');
+		}
+		
+		// formatting chart size
+		if(is_numeric($this->width))
+		{
+			// if width is a number (not percentage) we attach 'px'
+			$this->width .= 'px';
+		}
+		if(is_numeric($this->height))
+		{
+			$this->height .= 'px';
+		}
 		
 		$this->_registerWidgetScripts();
 		
@@ -236,10 +227,52 @@ class EAmchartWidget extends CWidget
 		$cs=Yii::app()->getClientScript();
 		//$cs->registerCoreScript('jquery');
 		
-		$basePath = Yii::getPathOfAlias('application.extensions.amcharts.assets');
+		$basePath = Yii::getPathOfAlias('ext.amcharts.assets');
 		$baseUrl = Yii::app()->getAssetManager()->publish($basePath);
 		
 		$cs->registerScriptFile($baseUrl.'/amcharts.js');
+		
+		// including necessary js file for current chart type
+		$chartType = strtolower($this->options['type']);
+		if(file_exists($basePath . DIRECTORY_SEPARATOR . $chartType . '.js'))
+		{
+			$cs->registerScriptFile($baseUrl . '/' . $chartType . '.js');
+		}
+		else
+		{
+			throw new CException($chartType . '.js file not found in ' . $basePath);
+		}
+		
+		// including necessary theme file
+		if(isset($this->options['theme']))
+		{
+			$theme = strtolower($this->options['theme']);
+			if(file_exists($basePath . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . $theme . '.js'))
+			{
+				$cs->registerScriptFile($baseUrl . '/themes/' . $theme . '.js');
+			}
+			else
+			{
+				throw new CException($theme . '.js file not found in ' . $basePath . DIRECTORY_SEPARATOR . 'themes');
+			}
+		}
+		
+		// default path to images
+		if(!isset($this->options['pathToImages']))
+		{
+			$this->options['pathToImages'] = $baseUrl . "/images/";
+		}
+		
+		// including libs for chart export if necessary
+		if(isset($this->options['exportConfig']) || isset($this->options['amExport']))
+		{
+			$cs->registerScriptFile($baseUrl.'/exporting/amexport.js');
+			$cs->registerScriptFile($baseUrl.'/exporting/canvg.js');
+			$cs->registerScriptFile($baseUrl.'/exporting/filesaver.js');
+			$cs->registerScriptFile($baseUrl.'/exporting/jspdf.js');
+			$cs->registerScriptFile($baseUrl.'/exporting/jspdf.plugin.addimage.js');
+			$cs->registerScriptFile($baseUrl.'/exporting/rgbcolor.js');
+		}
 	}
 	
 	/*
@@ -258,59 +291,124 @@ class EAmchartWidget extends CWidget
 	{	
 		$newArray = array();
 		
-		if($this->chart['dataProvider'] instanceof CActiveDataProvider)
+		if($this->options['dataProvider'] instanceof CActiveDataProvider)
 		{
-			$this->chart['dataProvider'] = $this->chart['dataProvider']->getData();
+			$this->options['dataProvider'] = $this->options['dataProvider']->getData();
 			
-			foreach ($this->chart['dataProvider'] as $modelData)
+			foreach ($this->options['dataProvider'] as $modelData)
 				$newArray[] = $modelData->attributes;
 		}
-		else if($this->chart['dataProvider'] instanceof IDataProvider)
+		else if($this->options['dataProvider'] instanceof IDataProvider)
 		{
-			$newArray=$this->chart['dataProvider']->getData();
+			$newArray=$this->options['dataProvider']->getData();
 		}
 		
 			
 		//foreach ($this->Graphs as $graph)
 			//$graph['valueField'] = md5($graph['valueField']);
 		
-		$this->chart['dataProvider'] = json_encode($newArray);
+		$this->options['dataProvider'] = $newArray;
 		
 		
-		foreach ($this->graphs as &$graph)
+		foreach ($this->options['graphs'] as &$graph)
 			$graph = array_merge($this->_defaultsAmGraphOptions, $graph);
 
 		
-		switch ($this->chartType)
+		switch ($this->options['type'])
 		{
-			case  AmChartTypes::AmPieChart :
-							$this->render('visualizeSerial',
-								array(
-									'chart'=>array_merge($this->_defaultsAmPieChartOptions, $this->chart),
-									'chartType'=>$this->chartType,
-									'width'=>$this->width,
-									'height'=>$this->height
-								),
-								false
-							);
-							break;
-			default:// AmChartTypes::AmSerialChart:
-							$this->render('visualizeSerial',
-								array(
-									'chart'=>array_merge($this->_defaultsAmSerialChartOptions, $this->chart),
-									'chartType'=>$this->chartType,
-									'graphs'=>$this->graphs,
-									'categoryAxis'=>$this->categoryAxis,
-									'valueAxis'=>$this->valueAxis,
-									'width'=>$this->width,
-									'height'=>$this->height
-								),
-								false
-							);
+			case 'pie':
+				$this->render('visualizeSerial',
+					array(
+						'width'=>$this->width,
+						'height'=>$this->height,
+						'options'=>array_merge($this->_defaultsAmPieChartOptions, $this->options),
+					),
+					false
+				);
+				break;
+			default:
+				$this->render('visualizeSerial',
+					array(
+						'width'=>$this->width,
+						'height'=>$this->height,
+						'options'=>array_merge($this->_defaultsAmSerialChartOptions, $this->options),
+					),
+					false
+				);
 		}
 	}
 	
+	/**
+	 * Format JSON data in a pretty way - each element from new line,
+	 * nested elements tabbed, e.g.
+	 * {"key1":[1,2,3],"key2":"value"}
+	 * becomes
+	 * {
+ 	 * 		"key1": [
+ 	 * 			1,
+ 	 * 			2,
+ 	 * 			3,
+ 	 * 		],
+ 	 * 		"key2": "value"
+	 * }
+	 * 
+	 * @param string $json JSON-encoded string
+	 * @return string
+	 */
+	public function prettyJSON( $json )
+	{
+		$result = '';
+		$level = 0;
+		$in_quotes = false;
+		$in_escape = false;
+		$ends_line_level = NULL;
+		$json_length = strlen( $json );
+		
+		for( $i = 0; $i < $json_length; $i++ ) {
+		    $char = $json[$i];
+		    $new_line_level = NULL;
+		    $post = "";
+		    if( $ends_line_level !== NULL ) {
+		        $new_line_level = $ends_line_level;
+		        $ends_line_level = NULL;
+		    }
+		    if ( $in_escape ) {
+		        $in_escape = false;
+		    } else if( $char === '"' ) {
+		        $in_quotes = !$in_quotes;
+		    } else if( ! $in_quotes ) {
+		        switch( $char ) {
+		            case '}': case ']':
+		                $level--;
+		                $ends_line_level = NULL;
+		                $new_line_level = $level;
+		                break;
+		
+		            case '{': case '[':
+		                $level++;
+		            case ',':
+		                $ends_line_level = $level;
+		                break;
+		
+		            case ':':
+		                $post = " ";
+		                break;
+		
+		            case " ": case "\t": case "\n": case "\r":
+		                $char = "";
+		                $ends_line_level = $new_line_level;
+		                $new_line_level = NULL;
+		                break;
+		        }
+		    } else if ( $char === '\\' ) {
+		        $in_escape = true;
+		    }
+		    if( $new_line_level !== NULL ) {
+		        $result .= "\n".str_repeat( "\t", $new_line_level );
+		    }
+		    $result .= $char.$post;
+		}
+		
+		return $result;
+	}
 }
-
-
-?>
