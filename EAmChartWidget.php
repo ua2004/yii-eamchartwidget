@@ -89,7 +89,7 @@
  * http://code.google.com/p/yii-amchart-widget/
  */
 
-class EAmchartWidget extends CWidget
+class EAmChartWidget extends CWidget
 {	
 	
 	/**
