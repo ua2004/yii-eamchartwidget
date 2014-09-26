@@ -257,6 +257,20 @@ class EAmChartWidget extends CWidget
 			}
 		}
 		
+		// including necessary language file
+		if(isset($this->options['language']) && ($this->options['language'] != 'en'))
+		{
+			$language = strtolower($this->options['language']);
+			if(file_exists($basePath . DIRECTORY_SEPARATOR . 'lang' . DIRECTORY_SEPARATOR . $language . '.js'))
+			{
+				$cs->registerScriptFile($baseUrl . '/lang/' . $language . '.js');
+			}
+			else
+			{
+				throw new CException($language . '.js file not found in ' . $basePath . DIRECTORY_SEPARATOR . 'lang');
+			}
+		}
+		
 		// default path to images
 		if(!isset($this->options['pathToImages']))
 		{
