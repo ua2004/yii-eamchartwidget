@@ -83,7 +83,7 @@ Installation
 Resources
 ---------
 
-* [Project page] (old version)
+* [Project page]
 * [AmCharts documentation]
 
 [AmCharts]:http://www.amcharts.com/
