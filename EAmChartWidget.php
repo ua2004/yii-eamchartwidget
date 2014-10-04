@@ -113,9 +113,9 @@ class EAmChartWidget extends CWidget
 	
 	/**
 	* @var array 
-	* Valid chart types
+	* Valid graph types
 	*/
-	private $_validChartTypes = array('column','bar','line','area','pie');
+	private $_validGraphTypes = array('line', 'column', 'step', 'smoothedLine', 'candlestick', 'ohlc');
 	
 	
 	/**
@@ -190,9 +190,9 @@ class EAmChartWidget extends CWidget
 		// ensuring that valid chart type is selected
 		foreach ($this->options['graphs'] as $graph)
 		{
-			if(!in_array($graph['type'], $this->_validChartTypes))
+			if(!in_array($graph['type'], $this->_validGraphTypes))
 			{
-				throw new CException($graph['type'] . ' is an invalid chart type. Valid charts are ' . implode(',',$this->_validChartTypes));
+				throw new CException($graph['type'] . ' is an invalid graph type. Valid graphs are ' . implode(',',$this->_validGraphTypes));
 			}
 		}
 		
