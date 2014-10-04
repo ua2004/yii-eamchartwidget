@@ -187,7 +187,7 @@ class EAmChartWidget extends CWidget
 	 */
 	public function init()
 	{
-		// ensuring that valid chart type is selected
+		// ensuring that valid graph type is selected
 		foreach ($this->options['graphs'] as $graph)
 		{
 			if(!in_array($graph['type'], $this->_validGraphTypes))
