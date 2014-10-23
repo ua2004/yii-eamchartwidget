@@ -4,10 +4,7 @@
 		// formatting JSON encoded text in a pretty way so that it doesn't take a one very long line
 		$options = $this->prettyJSON(json_encode($options));
 		// removing quotes from javascript function names
-		$options = preg_replace('/"labelFunction": "(.+?)"/', '"labelFunction": $1', $options);
-		$options = preg_replace('/"balloonFunction": "(.+?)"/', '"balloonFunction": $1', $options);
-		$options = preg_replace('/"categoryFunction": "(.+?)"/', '"categoryFunction": $1', $options);
-		$options = preg_replace('/"categoryBalloonFunction": "(.+?)"/', '"categoryBalloonFunction": $1', $options);
+		$options = preg_replace('/"((?:label|balloon|category|categoryBalloon)Function)": "(.+?)"/', '"$1": $2', $options);
 	?>var chart<?php echo $currentTimestamp; ?> = AmCharts.makeChart("chartdiv<?php echo $currentTimestamp; ?>", <?php echo $options; ?>);
 			
 			chart<?php echo $currentTimestamp; ?>.addListener("rendered", zoomChart);
