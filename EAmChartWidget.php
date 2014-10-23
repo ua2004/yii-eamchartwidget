@@ -317,12 +317,17 @@ class EAmChartWidget extends CWidget
 			$newArray=$this->options['dataProvider']->getData();
 		}
 		
-			
-		//foreach ($this->Graphs as $graph)
-			//$graph['valueField'] = md5($graph['valueField']);
-		
 		$this->options['dataProvider'] = $newArray;
 		
+		if(isset($this->options['listeners']))
+		{
+			$listeners = $this->options['listeners'];
+			unset($this->options['listeners']);
+		}
+		else
+		{
+			$listeners = null;
+		}
 		
 		foreach ($this->options['graphs'] as &$graph)
 			$graph = array_merge($this->_defaultsAmGraphOptions, $graph);
@@ -336,6 +341,7 @@ class EAmChartWidget extends CWidget
 						'width'=>$this->width,
 						'height'=>$this->height,
 						'options'=>array_merge($this->_defaultsAmPieChartOptions, $this->options),
+						'listeners'=>$listeners,
 					),
 					false
 				);
@@ -346,6 +352,7 @@ class EAmChartWidget extends CWidget
 						'width'=>$this->width,
 						'height'=>$this->height,
 						'options'=>array_merge($this->_defaultsAmSerialChartOptions, $this->options),
+						'listeners'=>$listeners,
 					),
 					false
 				);

@@ -8,8 +8,18 @@
 	?>var chart<?php echo $currentTimestamp; ?> = AmCharts.makeChart("chartdiv<?php echo $currentTimestamp; ?>", <?php echo $options; ?>);
 			
 			chart<?php echo $currentTimestamp; ?>.addListener("rendered", zoomChart);
+			<?php
+			if( isset($listeners) )
+			{
+				foreach($listeners as $event=>$listener)
+				{
+					echo "chart$currentTimestamp.addListener(\"$event\", $listener);\n";
+				}
+			}
+			?>
 			
 			zoomChart();
+
 			function zoomChart(){
 			    chart<?php echo $currentTimestamp; ?>.zoomToIndexes(chart<?php echo $currentTimestamp; ?>.dataProvider.length - 40, chart<?php echo $currentTimestamp; ?>.dataProvider.length - 1);
 			}
